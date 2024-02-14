@@ -1,0 +1,5 @@
+{
+  "model_path": "C:/Geoffrey/llama_win/model/llama_7b.gguf",
+  "ingest_files_dir": "docs",
+  "vector_db_file": "vector_db/llama.db"
+}
