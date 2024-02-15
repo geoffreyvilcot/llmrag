@@ -4,6 +4,8 @@ from llama_cpp import Llama
 import numpy as np
 import faiss
 import pickle
+import getopt
+import sys
 
 def process_file_md(conf : Config, filename : str) -> [str] :
     chunks = []

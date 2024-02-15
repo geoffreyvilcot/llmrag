@@ -1,5 +1,5 @@
 {
-  "model_path": "../models/Publisher/Repository/llama_13b.gguf",
+  "model_path": "models/llama_13b.gguf",
   "ingest_files_dir": "docs",
   "vector_db_file": "vector_db/llama.db",
   "n_ctx": 2048,
