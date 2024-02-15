@@ -48,14 +48,25 @@ def process_file(conf : Config, model : Llama, filename : str)  :
     return  chunks
 
 if __name__ == '__main__':
-    conf = Config(conf_file="config.json")
+    conf_file_name = "config.json"
+
+    opts, args = getopt.getopt(sys.argv[1:],"hc:")
+    for opt, arg in opts:
+        if opt == '-h':
+            print(sys.argv[0] + ' -c <conf_file>')
+            sys.exit()
+        elif opt in ("-c"):
+            conf_file_name = arg
+
+    conf = Config(conf_file=conf_file_name)
 
     llm = Llama(
         model_path=conf.model_path,
         embedding=True,
-        # n_gpu_layers=-1, # Uncomment to use GPU acceleration
+        n_gpu_layers=conf.n_gpu_layers,
         # seed=1337, # Uncomment to set a specific seed
-        # n_ctx=2048, # Uncomment to increase the context window
+
+        n_ctx=conf.n_ctx,  # Uncomment to increase the context window
     )
     input_files = [os.path.join(conf.ingest_files_dir, f) for f in os.listdir(conf.ingest_files_dir)]
 
