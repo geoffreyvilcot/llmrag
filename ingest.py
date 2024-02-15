@@ -6,6 +6,7 @@ import faiss
 import pickle
 import getopt
 import sys
+from tqdm import tqdm
 
 def process_file_md(conf : Config, filename : str) -> [str] :
     chunks = []
@@ -66,6 +67,7 @@ if __name__ == '__main__':
         model_path=conf.model_path,
         embedding=True,
         n_gpu_layers=conf.n_gpu_layers,
+        verbose=False,
         # seed=1337, # Uncomment to set a specific seed
 
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
@@ -74,7 +76,10 @@ if __name__ == '__main__':
 
     stack = []
     stack_chunks = []
-    for filename in input_files :
+    print("Read file")
+    for i in tqdm(range(len(input_files))) :
+    # for filename in input_files :
+        filename = input_files[i]
         chunks = process_file(conf, llm, filename)
         # stack.append(text_embeddings)
         stack_chunks.extend(chunks)
@@ -85,8 +90,11 @@ if __name__ == '__main__':
     print(len(stack_chunks))
     idx = 0
     array_emb = []
-    for chunk in stack_chunks :
-        print(f"{idx}/{len(stack_chunks)}")
+    # for chunk in stack_chunks :
+    print("Compute Embeddings")
+    for i in tqdm(range(len(stack_chunks)), ncols=60) :
+        chunk = stack_chunks[i]
+        # print(f"{idx}/{len(stack_chunks)}")
         array_emb.append(llm.embed(chunk))
         idx +=1
     text_embeddings = np.array(array_emb)

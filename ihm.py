@@ -43,6 +43,16 @@ class Thread_Worker(Thread) :
         Reponse:
         """
 
+        prompt = f"""
+        Le contexte est décrit ci-dessous.
+        ---------------------
+        {retrieved_chunk}
+        ---------------------
+        A partir de ces informations de contexte et avec aucun savoir préalable, Répondre au mail suivant :
+        {text}
+        Reponse:
+        """
+
         print(prompt)
 
         start_t = time.time()
