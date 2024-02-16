@@ -14,6 +14,7 @@ import urllib
 import numpy as np
 import getopt
 from llama_cpp import Llama
+from prompt import build_prompt
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -36,7 +37,7 @@ def llmrag_query():
     D, I = index.search(question_embeddings, k=2)  # distance, index
     retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
 
-    prompt = prompt = build_prompt(conf.prompt_template, text, str(retrieved_chunk))
+    prompt = build_prompt(conf.prompt_template, msg, str(retrieved_chunk))
 
     print(prompt)
 
@@ -78,4 +79,4 @@ if __name__ == "__main__":
     with open(conf.vector_db_file, 'rb') as file:
         index, chunks = pickle.load(file)
 
-    app.run(host="0.0.0.0", port=13080)
+    app.run(host="0.0.0.0", port=16080)
