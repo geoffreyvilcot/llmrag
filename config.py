@@ -10,3 +10,5 @@ class Config(object):
         self.vector_db_file = jconf['vector_db_file']
         self.n_ctx = int(jconf['n_ctx'])
         self.n_gpu_layers = int(jconf['n_gpu_layers'])
+
+        self.prompt_template = jconf['prompt_template']

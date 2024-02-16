@@ -36,25 +36,7 @@ def llmrag_query():
     D, I = index.search(question_embeddings, k=2)  # distance, index
     retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
 
-    prompt = f"""
-    Le contexte est décrit ci-dessous.
-    ---------------------
-    {retrieved_chunk}
-    ---------------------
-    A partir de ces informations de contexte et avec aucun savoir préalable, Répondre à la question.
-    Question: {msg}
-    Reponse:
-    """
-
-    prompt = f"""
-    Le contexte est décrit ci-dessous.
-    ---------------------
-    {retrieved_chunk}
-    ---------------------
-    A partir de ces informations de contexte et avec aucun savoir préalable, Répondre au mail suivant :
-    {msg}
-    Reponse:
-    """
+    prompt = prompt = build_prompt(conf.prompt_template, text, str(retrieved_chunk))
 
     print(prompt)
 

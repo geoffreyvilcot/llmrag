@@ -16,6 +16,7 @@ import time
 from threading import Thread
 
 import getopt
+from prompt import build_prompt
 
 class Thread_Worker(Thread) :
     def __init__(self, text_ctrl : wx.TextCtrl, text_debug : wx.TextCtrl, button : wx.Button, iterations : int, temperature : float):
@@ -33,25 +34,7 @@ class Thread_Worker(Thread) :
         D, I = index.search(question_embeddings, k=2)  # distance, index
         retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
 
-        prompt = f"""
-        Le contexte est décrit ci-dessous.
-        ---------------------
-        {retrieved_chunk}
-        ---------------------
-        A partir de ces informations de contexte et avec aucun savoir préalable, Répondre à la question.
-        Question: {text}
-        Reponse:
-        """
-
-        prompt = f"""
-        Le contexte est décrit ci-dessous.
-        ---------------------
-        {retrieved_chunk}
-        ---------------------
-        A partir de ces informations de contexte et avec aucun savoir préalable, Répondre au mail suivant :
-        {text}
-        Reponse:
-        """
+        prompt = build_prompt(conf.prompt_template, text, str(retrieved_chunk))
 
         print(prompt)
 
