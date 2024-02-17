@@ -8,7 +8,7 @@ import getopt
 import sys
 from tqdm import tqdm
 
-def process_file_md(conf : Config, filename : str) -> [str] :
+def process_file_md_alt(conf : Config, filename : str) -> [str] :
     chunks = []
     with open(filename, "r", encoding='utf-8') as f:
         prevline = ""
@@ -30,6 +30,25 @@ def process_file_md(conf : Config, filename : str) -> [str] :
             chunks.append(current_chunk)
     return chunks
 
+def process_file_md(conf : Config, model : Llama, filename : str, max_tokens=256) -> [str] :
+    chunks = []
+    pre_text = os.path.basename(filename).split('.')[0]
+    with open(filename, "r", encoding='utf-8') as f:
+
+        line = f.readline()
+        current_chunk = f"{pre_text} / "
+        while line :
+            tokens = model.tokenize(current_chunk.encode('utf8'))
+            if line.startswith('#') or len(tokens)>max_tokens:
+                if len(current_chunk) > 10:
+                    chunks.append(current_chunk)
+                    current_chunk = f"{pre_text} / "
+            current_chunk += line
+            line = f.readline()
+        if len(current_chunk) > 10 :
+            chunks.append(current_chunk)
+    return chunks
+
 def process_file_basic(conf : Config, filename : str) -> [str] :
     chunks = []
     with open(filename, "r", encoding='utf-8') as f:
@@ -40,7 +59,8 @@ def process_file_basic(conf : Config, filename : str) -> [str] :
 
 def process_file(conf : Config, model : Llama, filename : str)  :
 
-    chunks = process_file_basic(conf, filename)
+    chunks = process_file_md(conf, model, filename, max_tokens=512)
+    # chunks = process_file_basic(conf, filename)
     emb_chunks = []
     # for chunk in chunks :
     #     print(chunk)
@@ -102,6 +122,8 @@ if __name__ == '__main__':
     d = text_embeddings.shape[1]
     index = faiss.IndexFlatL2(d)
     index.add(text_embeddings)
+
+    # index.search(d, k=2, distances=13.4)
 
     with open(conf.vector_db_file, 'wb') as file:
         pickle.dump((index,stack_chunks) , file)

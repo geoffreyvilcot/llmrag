@@ -12,29 +12,40 @@ import numpy as np
 from config import Config
 import json
 import time
+import faiss
 
 from threading import Thread
 
 import getopt
 from prompt import build_prompt
 
+
+
 class Thread_Worker(Thread) :
-    def __init__(self, text_ctrl : wx.TextCtrl, text_debug : wx.TextCtrl, button : wx.Button, iterations : int, temperature : float):
+    def __init__(self, index : faiss.IndexFlatL2, text_ctrl : wx.TextCtrl, text_debug : wx.TextCtrl, button : wx.Button, iterations : int, k_vector : float, distance : float):
         Thread.__init__(self)
+        self.index = index
         self.text_ctrl = text_ctrl
         self.text_debug = text_debug
         self.iterations = iterations
-        self.temperature = temperature
+        self.k_vector = int(k_vector)
+        self.distance = float(distance)
         self.button = button
         self.force_stop = False
     def run(self) -> None:
         text = self.text_ctrl.GetValue()
 
         question_embeddings = np.array([llm.embed(text)])
-        D, I = index.search(question_embeddings, k=2)  # distance, index
+        # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
+        D, I = self.index.search(question_embeddings, k=self.k_vector)  # distance, index
+
         retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
 
-        prompt = build_prompt(conf.prompt_template, text, str(retrieved_chunk))
+        str_chunks = ""
+        for chunk in retrieved_chunk :
+            str_chunks =f"{chunk}\n"
+
+        prompt = build_prompt(conf.prompt_template, text, str_chunks)
 
         print(prompt)
 
@@ -71,13 +82,18 @@ class MyFrame(wx.Frame):
         self.text_ctrl = wx.TextCtrl(panel, style=wx.TE_MULTILINE)
         self.text_ctrl.WriteText(initial_text)
 
-        self.len_ctrl = wx.TextCtrl(panel, size=(100,-1))
+        self.len_ctrl = wx.TextCtrl(panel, size=(100,-1) )
         self.len_ctrl.WriteText("500")
 
-        self.temp_ctrl = wx.TextCtrl(panel, size=(100,-1))
-        self.temp_ctrl.WriteText("1")
+        self.k_vector_ctrl = wx.TextCtrl(panel, size=(100, -1))
+        self.k_vector_ctrl.WriteText("3")
+
+        self.distance_ctrl = wx.TextCtrl(panel, size=(100, -1))
+        self.distance_ctrl.WriteText("30")
 
         self.debugtext = wx.TextCtrl(panel, size=(100,-1), style=wx.TE_READONLY)
+
+
 
 
 
@@ -97,7 +113,8 @@ class MyFrame(wx.Frame):
 
         sizerH = wx.BoxSizer(wx.HORIZONTAL)
         sizerH.Add(self.len_ctrl, 0,  wx.EXPAND | wx.ALL, 5)
-        sizerH.Add(self.temp_ctrl, 0,  wx.EXPAND | wx.ALL, 5)
+        sizerH.Add(self.k_vector_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+        sizerH.Add(self.distance_ctrl, 0, wx.EXPAND | wx.ALL, 5)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizerH, 0,  wx.EXPAND | wx.ALL, 5)
@@ -113,9 +130,10 @@ class MyFrame(wx.Frame):
 
     def on_button(self, event):
         iteration=int(self.len_ctrl.GetValue())
-        temperature = float(self.temp_ctrl.GetValue())
+        k_vector_ctrl = float(self.k_vector_ctrl.GetValue())
+        distance = float(self.distance_ctrl.GetValue())
 
-        self.th = Thread_Worker(self.text_ctrl, self.debugtext, self.button, iteration, temperature)
+        self.th = Thread_Worker(index, self.text_ctrl, self.debugtext, self.button, iteration, k_vector_ctrl, distance)
         self.th.start()
         self.button.Disable()
         # Récupérer le texte saisi
@@ -149,6 +167,8 @@ if __name__ == "__main__":
     )
     with open(conf.vector_db_file, 'rb') as file:
         index, chunks = pickle.load(file)
+
+    # index = faiss.IndexFlatL2(index_)
 
     # Créer une application
     app = wx.App()

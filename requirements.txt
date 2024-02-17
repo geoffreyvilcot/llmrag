@@ -1,5 +1,5 @@
-faiss-cpu==1.7.4
-llama_cpp_python==0.2.41
-wxPython==4.2.1
+faiss-cpu
+llama_cpp_python
+wxPython
 tqdm
 flask
