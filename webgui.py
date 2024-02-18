@@ -13,17 +13,16 @@ from threading import Thread
 import getopt
 from prompt import build_prompt
 import sys
+from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 
 def query(Inputs, k_vector, max_tokens):
     question_embeddings = np.array([llm.embed(Inputs)])
     # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
-    D, I = index.search(question_embeddings, k=k_vector)  # distance, index
-
-    retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
+    retrieved_chunk=db.search(question_embeddings)
 
     str_chunks = ""
     for chunk in retrieved_chunk:
-        str_chunks = f"{chunk}\n"
+        str_chunks = f"{str_chunks}{chunk}\n"
 
     prompt = build_prompt(conf.prompt_template, Inputs, str_chunks)
 
@@ -67,8 +66,12 @@ if __name__ == "__main__":
         # seed=1337, # Uncomment to set a specific seed
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
     )
-    with open(conf.vector_db_file, 'rb') as file:
-        index, chunks = pickle.load(file)
+
+    if conf.use_qdrant :
+        db = Vector_DB_Qdrant(conf, None)
+    else :
+        db = Vector_DB_Faiss(conf, None)
+    db.load()
 
 
     demo = gr.Interface(

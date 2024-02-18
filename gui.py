@@ -13,6 +13,7 @@ from config import Config
 import json
 import time
 import faiss
+from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 
 from threading import Thread
 
@@ -22,7 +23,7 @@ from prompt import build_prompt
 
 
 class Thread_Worker(Thread) :
-    def __init__(self, index : faiss.IndexFlatL2, text_ctrl : wx.TextCtrl, text_debug : wx.TextCtrl, button : wx.Button, iterations : int, k_vector : float, distance : float):
+    def __init__(self, index : Vector_DB, text_ctrl : wx.TextCtrl, text_debug : wx.TextCtrl, button : wx.Button, iterations : int, k_vector : float, distance : float):
         Thread.__init__(self)
         self.index = index
         self.text_ctrl = text_ctrl
@@ -37,13 +38,15 @@ class Thread_Worker(Thread) :
 
         question_embeddings = np.array([llm.embed(text)])
         # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
-        D, I = self.index.search(question_embeddings, k=self.k_vector)  # distance, index
+        # D, I = self.index.search(question_embeddings, k=self.k_vector)  # distance, index
 
-        retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
+        # retrieved_chunk = [chunks[i] for i in I.tolist()[0]]
+        retrieved_chunk=self.index.search(question_embeddings)
+
 
         str_chunks = ""
         for chunk in retrieved_chunk :
-            str_chunks =f"{chunk}\n"
+            str_chunks = f"{str_chunks}{chunk}\n"
 
         prompt = build_prompt(conf.prompt_template, text, str_chunks)
 
@@ -133,7 +136,7 @@ class MyFrame(wx.Frame):
         k_vector_ctrl = float(self.k_vector_ctrl.GetValue())
         distance = float(self.distance_ctrl.GetValue())
 
-        self.th = Thread_Worker(index, self.text_ctrl, self.debugtext, self.button, iteration, k_vector_ctrl, distance)
+        self.th = Thread_Worker(db, self.text_ctrl, self.debugtext, self.button, iteration, k_vector_ctrl, distance)
         self.th.start()
         self.button.Disable()
         # Récupérer le texte saisi
@@ -165,8 +168,16 @@ if __name__ == "__main__":
         # seed=1337, # Uncomment to set a specific seed
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
     )
-    with open(conf.vector_db_file, 'rb') as file:
-        index, chunks = pickle.load(file)
+
+    if conf.use_qdrant :
+        db = Vector_DB_Qdrant(conf, d)
+    else :
+        db = Vector_DB_Faiss(conf, d)
+    db.load()
+
+
+    # with open(conf.vector_db_file, 'rb') as file:
+    #     index, chunks = pickle.load(file)
 
     # index = faiss.IndexFlatL2(index_)
 

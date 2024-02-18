@@ -7,6 +7,7 @@ import pickle
 import getopt
 import sys
 from tqdm import tqdm
+from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 
 def process_file_md_alt(conf : Config, filename : str) -> [str] :
     chunks = []
@@ -118,13 +119,17 @@ if __name__ == '__main__':
         array_emb.append(llm.embed(chunk))
         idx +=1
     text_embeddings = np.array(array_emb)
-    # text_embeddings = np.array([llm.embed(chunk) for chunk in stack_chunks])
+
     d = text_embeddings.shape[1]
-    index = faiss.IndexFlatL2(d)
-    index.add(text_embeddings)
+    print(f"dim : {d}")
 
-    # index.search(d, k=2, distances=13.4)
 
-    with open(conf.vector_db_file, 'wb') as file:
-        pickle.dump((index,stack_chunks) , file)
+    if conf.use_qdrant :
+        db = Vector_DB_Qdrant(conf, d)
+    else :
+        db = Vector_DB_Faiss(conf, d)
+
+    db.reset()
+    db.add(text_embeddings, stack_chunks)
+    db.save()
 

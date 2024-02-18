@@ -4,3 +4,4 @@ wxPython
 tqdm
 flask
 gradio
+qdrant-client

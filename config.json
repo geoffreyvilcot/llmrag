@@ -1,8 +1,14 @@
 {
-  "model_path": "models/llama_13b.gguf",
+  "model_path": "models/mistral.gguf",
   "ingest_files_dir": "docs",
-  "vector_db_file": "vector_db/llama.db",
+  "vector_db_file": "vector_db/demo.db",
   "n_ctx": 2048,
   "n_gpu_layers": -1,
-  "prompt_template": "prompt_default.txt"
+  "prompt_template": "prompt_default.txt",
+
+  "use_qdrant" : false,
+
+  "qdrant_host" : "localhost",
+  "qdrant_port" : "6333",
+  "qdrant_collection" : "demo"
 }
