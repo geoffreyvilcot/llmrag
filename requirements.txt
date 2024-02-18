@@ -1,6 +1,5 @@
 faiss-cpu
 llama_cpp_python
-wxPython
 tqdm
 flask
 gradio
