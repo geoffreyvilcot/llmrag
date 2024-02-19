@@ -15,7 +15,7 @@ class Vector_DB :
     def add(self, vector, payload):
         pass
 
-    def search(self, vector):
+    def search(self, vector, k=3):
         pass
 
     def save(self):
@@ -39,8 +39,8 @@ class Vector_DB_Faiss(Vector_DB) :
             self.payloads.append(p)
         pass
 
-    def search(self, vector):
-        D, I = self.index.search(vector, k=self.k_vector)  # distance, index
+    def search(self, vector, k=3):
+        D, I = self.index.search(vector, k=k)  # distance, index
 
         retrieved_payloads = [self.payloads[i] for i in I.tolist()[0]]
         return retrieved_payloads
@@ -91,11 +91,11 @@ class Vector_DB_Qdrant(Vector_DB) :
             vector_points = []
             print(operation_info)
 
-    def search(self, vector):
+    def search(self, vector, k=3):
         search_result = self.client.search(
-            collection_name=self.conf.qdrant_collection, query_vector=vector[0].tolist(), limit=self.k_vector
+            collection_name=self.conf.qdrant_collection, query_vector=vector[0].tolist(), limit=k
         )
-        print(search_result)
+        # print(search_result)
         retrieve_payloads = [ result.payload['data'] for result in search_result]
         return retrieve_payloads
         # D, I = self.index.search(vector, k=self.k_vector)  # distance, index

@@ -41,7 +41,7 @@ def process_file_md(conf : Config, model : Llama, filename : str, max_tokens=256
         while line :
             tokens = model.tokenize(current_chunk.encode('utf8'))
             if line.startswith('#') or len(tokens)>max_tokens:
-                if len(current_chunk) > 10:
+                if len(current_chunk) > 100:
                     chunks.append(current_chunk)
                     current_chunk = f"{pre_text} / "
             current_chunk += line
@@ -89,6 +89,7 @@ if __name__ == '__main__':
         embedding=True,
         n_gpu_layers=conf.n_gpu_layers,
         verbose=False,
+        # n_threads=20,
         # seed=1337, # Uncomment to set a specific seed
 
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
@@ -107,13 +108,14 @@ if __name__ == '__main__':
         # print(text_embeddings)
 
 
-    print(stack_chunks)
+    # print(stack_chunks)
     print(len(stack_chunks))
+    
     idx = 0
     array_emb = []
     # for chunk in stack_chunks :
     print("Compute Embeddings")
-    for i in tqdm(range(len(stack_chunks)), ncols=60) :
+    for i in tqdm(range(len(stack_chunks))) :
         chunk = stack_chunks[i]
         # print(f"{idx}/{len(stack_chunks)}")
         array_emb.append(llm.embed(chunk))

@@ -18,7 +18,7 @@ from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 def query(Inputs, k_vector, max_tokens):
     question_embeddings = np.array([llm.embed(Inputs)])
     # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
-    retrieved_chunk=db.search(question_embeddings)
+    retrieved_chunk=db.search(question_embeddings, k_vector)
 
     str_chunks = ""
     for chunk in retrieved_chunk:
@@ -84,5 +84,5 @@ if __name__ == "__main__":
         outputs=[gr.Textbox(label="Outputs", lines=30)],
     )
 
-    demo.launch(server_name="0.0.0.0", server_port=49283)
+    demo.launch(server_name="localhost", server_port=49283)
     # auth=("admin", "pass1234")

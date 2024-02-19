@@ -21,7 +21,7 @@ CMAKE_ARGS="-DLLAMA_METAL=on" pip install llama-cpp-python
 
 For Cuda:
 ```
-CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
 ```
 
 Install other requirements:
@@ -55,7 +55,7 @@ Run `python ingest.py [-c config_file_path]`
 
 ### Graphical User Interface
 
-A lightweight interface in _wxPython_ is available : `python gui.py [-c config_file_path]`
+A Web interface in _Gradio_ is available : `python webgui.py [-c config_file_path]`
 
 ### Webservice
 
