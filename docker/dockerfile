@@ -1,0 +1,46 @@
+#Not Working
+
+ARG CUDA_IMAGE="12.1.1-devel-ubuntu22.04"
+FROM nvidia/cuda:${CUDA_IMAGE}
+
+# Utilise l'image Python 3.11
+#FROM python:3.11
+
+
+# Définit la variable d'environnement CMAKE_ARGS
+ENV CMAKE_ARGS="-DLLAMA_CUBLAS=on"
+ENV HOST 0.0.0.0
+
+# Définit le répertoire de travail à l'intérieur du conteneur
+WORKDIR /app
+RUN mkdir vector_db models
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
+    python3 python3-pip gcc wget \
+    ocl-icd-opencl-dev opencl-headers clinfo \
+    libclblast-dev libopenblas-dev \
+    && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+
+# setting build related env vars
+ENV CUDA_DOCKER_ARCH=all
+ENV LLAMA_CUBLAS=1
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.1/compat/
+
+RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context
+RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
+
+# Copie les fichiers Python dans le répertoire de travail
+COPY ../*.py .
+COPY ../requirements.txt .
+COPY ../config.json .
+COPY ../vector_db/demo.db ./vector_db
+COPY ../models/llama_13b.gguf ./models
+COPY ../prompt*.txt .
+
+# Installe les dépendances Python
+RUN pip install -r requirements.txt
+
+# Exécute le script main.py
+CMD ["python3", "webgui.py"]

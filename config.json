@@ -1,5 +1,5 @@
 {
-  "model_path": "models/mistral.gguf",
+  "model_path": "models/llama_13b.gguf",
   "ingest_files_dir": "docs",
   "vector_db_file": "vector_db/demo.db",
   "n_ctx": 2048,

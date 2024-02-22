@@ -78,11 +78,11 @@ if __name__ == "__main__":
         allow_flagging='never',
         fn=query,
         inputs=[gr.Textbox(label="Inputs", lines=10),
-                gr.Number(3, label="k"),
+                gr.Number(2, label="k"),
                 gr.Number(512, label="Max tokens"),
                 ],
         outputs=[gr.Textbox(label="Outputs", lines=30)],
     )
 
-    demo.launch(server_name="localhost", server_port=49283)
+    demo.launch(server_name="0.0.0.0", server_port=49283)
     # auth=("admin", "pass1234")
