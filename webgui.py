@@ -16,15 +16,18 @@ import sys
 from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 
 def query(Inputs, k_vector, max_tokens):
-    question_embeddings = np.array([llm.embed(Inputs)])
-    # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
-    retrieved_chunk=db.search(question_embeddings, k_vector)
+    if conf.use_rag :
+        question_embeddings = np.array([llm.embed(Inputs)])
+        # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
+        retrieved_chunk=db.search(question_embeddings, k_vector)
 
-    str_chunks = ""
-    for chunk in retrieved_chunk:
-        str_chunks = f"{str_chunks}{chunk}\n"
+        str_chunks = ""
+        for chunk in retrieved_chunk:
+            str_chunks = f"{str_chunks}{chunk}\n"
 
-    prompt = build_prompt(conf.prompt_template, Inputs, str_chunks)
+        prompt = build_prompt(conf.prompt_template, Inputs, str_chunks)
+    else :
+        prompt = Inputs
 
     print(prompt)
 
@@ -67,11 +70,12 @@ if __name__ == "__main__":
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
     )
 
-    if conf.use_qdrant :
-        db = Vector_DB_Qdrant(conf, None)
-    else :
-        db = Vector_DB_Faiss(conf, None)
-    db.load()
+    if conf.use_rag :
+        if conf.use_qdrant :
+            db = Vector_DB_Qdrant(conf, None)
+        else :
+            db = Vector_DB_Faiss(conf, None)
+        db.load()
 
 
     demo = gr.Interface(
@@ -84,5 +88,5 @@ if __name__ == "__main__":
         outputs=[gr.Textbox(label="Outputs", lines=30)],
     )
 
-    demo.launch(server_name="0.0.0.0", server_port=49283)
+    demo.launch(server_name="127.0.0.1", server_port=49283)
     # auth=("admin", "pass1234")

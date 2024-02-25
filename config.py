@@ -26,3 +26,7 @@ class Config(object):
         if "qdrant_collection" in jconf :
             self.qdrant_collection = jconf['qdrant_collection']
 
+        self.use_rag = False
+        if "use_rag" in jconf and bool(jconf['use_rag']) :
+            self.use_rag = True
+

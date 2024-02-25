@@ -6,6 +6,7 @@
   "n_gpu_layers": -1,
   "prompt_template": "prompt_default.txt",
 
+  "use_rag": false,
   "use_qdrant" : false,
 
   "qdrant_host" : "localhost",
