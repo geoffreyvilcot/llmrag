@@ -30,3 +30,5 @@ class Config(object):
         if "use_rag" in jconf and bool(jconf['use_rag']) :
             self.use_rag = True
 
+        self.chunks_mode = jconf['chunks_mode']
+

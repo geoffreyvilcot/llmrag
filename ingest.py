@@ -60,8 +60,10 @@ def process_file_basic(conf : Config, filename : str) -> [str] :
 
 def process_file(conf : Config, model : Llama, filename : str)  :
 
-    chunks = process_file_md(conf, model, filename, max_tokens=512)
-    # chunks = process_file_basic(conf, filename)
+    if conf.chunks_mode == 'md' :
+        chunks = process_file_md(conf, model, filename, max_tokens=512)
+    else :
+        chunks = process_file_basic(conf, filename)
     emb_chunks = []
     # for chunk in chunks :
     #     print(chunk)
