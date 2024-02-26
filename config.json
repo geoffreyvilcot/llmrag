@@ -1,15 +1,16 @@
 {
-  "model_path": "models/llama_13b.gguf",
+  "model_path": "models/gemma-2b-it_Q4_K_M.gguf",
   "ingest_files_dir": "docs",
-  "vector_db_file": "vector_db/demo.db",
+  "vector_db_file": "vector_db/gemma.db",
   "n_ctx": 2048,
   "n_gpu_layers": -1,
   "prompt_template": "prompt_default.txt",
-  "chunks_mode": "md",
+  "chunks_mode": "text",
 
   "use_rag": false,
-  "use_qdrant" : false,
+  "use_qdrant" : true,
 
+  "qdrant_local" : true,
   "qdrant_host" : "localhost",
   "qdrant_port" : "6333",
   "qdrant_collection" : "demo"

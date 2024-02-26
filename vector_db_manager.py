@@ -59,7 +59,10 @@ class Vector_DB_Qdrant(Vector_DB) :
     def __init__(self, conf : Config, dim=None):
         super().__init__(conf, dim)
         self.conf = conf
-        self.client = QdrantClient(self.conf.qdrant_host, port=self.conf.qdrant_port)
+        if self.conf.qdrant_local :
+            self.client = QdrantClient(path=self.conf.vector_db_file)
+        else :
+            self.client = QdrantClient(self.conf.qdrant_host, port=self.conf.qdrant_port)
         self.k_vector = 3
         self.dim = dim
 

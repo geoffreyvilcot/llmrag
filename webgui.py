@@ -39,7 +39,7 @@ def query(Inputs, k_vector, max_tokens, temperature, seed):
         stop=["Query:", "Question:"],  # Stop generating just before the model would generate a new question
         echo=False,  # Echo the prompt back in the output
         temperature=temperature,
-        seed=seed
+        seed=seed,
     )  # Generate a completion, can also call create_completion
     end_t = time.time()
     print(output)
