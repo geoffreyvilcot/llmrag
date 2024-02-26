@@ -6,8 +6,9 @@
   "n_gpu_layers": -1,
   "prompt_template": "prompt_default.txt",
   "chunks_mode": "text",
+  "external_llama_cpp_url" : "http://127.0.0.1:8080",
 
-  "use_rag": false,
+  "use_rag": true,
   "use_qdrant" : true,
 
   "qdrant_local" : true,

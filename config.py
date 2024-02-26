@@ -51,4 +51,9 @@ class Config(object):
         else:
             self.ingest_max_tokens = 256
 
+        if "external_llama_cpp_url" in jconf and len(jconf['external_llama_cpp_url']) > 5:
+            self.external_llama_cpp_url = jconf['external_llama_cpp_url']
+        else :
+            self.external_llama_cpp_url = None
+
 
