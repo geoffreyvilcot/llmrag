@@ -32,3 +32,19 @@ class Config(object):
 
         self.chunks_mode = jconf['chunks_mode']
 
+        if "listen_bind" in jconf :
+            self.listen_bind = jconf['listen_bind']
+        else :
+            self.listen_bind = "127.0.0.1"
+
+        if "listen_port" in jconf:
+            self.listen_port = int(jconf['listen_port'])
+        else:
+            self.listen_port = 49283
+
+        if "ingest_max_tokens" in jconf:
+            self.ingest_max_tokens = int(jconf['ingest_max_tokens'])
+        else:
+            self.ingest_max_tokens = 256
+
+

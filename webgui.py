@@ -15,7 +15,7 @@ from prompt import build_prompt
 import sys
 from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
 
-def query(Inputs, k_vector, max_tokens):
+def query(Inputs, k_vector, max_tokens, temperature, seed):
     if conf.use_rag :
         question_embeddings = np.array([llm.embed(Inputs)])
         # toto = self.index.search(question_embeddings,  k=3, distances=0.3)
@@ -23,7 +23,7 @@ def query(Inputs, k_vector, max_tokens):
 
         str_chunks = ""
         for chunk in retrieved_chunk:
-            str_chunks = f"{str_chunks}{chunk}\n"
+            str_chunks = f"{str_chunks}{chunk}\n--\n"
 
         prompt = build_prompt(conf.prompt_template, Inputs, str_chunks)
     else :
@@ -37,7 +37,9 @@ def query(Inputs, k_vector, max_tokens):
         max_tokens=max_tokens,
         # Generate up to 32 tokens, set to None to generate up to the end of the context window
         stop=["Query:", "Question:"],  # Stop generating just before the model would generate a new question
-        echo=False  # Echo the prompt back in the output
+        echo=False,  # Echo the prompt back in the output
+        temperature=temperature,
+        seed=seed
     )  # Generate a completion, can also call create_completion
     end_t = time.time()
     print(output)
@@ -68,6 +70,7 @@ if __name__ == "__main__":
         n_gpu_layers=conf.n_gpu_layers, # Uncomment to use GPU acceleration
         # seed=1337, # Uncomment to set a specific seed
         n_ctx=conf.n_ctx,  # Uncomment to increase the context window
+        n_threads=12,
     )
 
     if conf.use_rag :
@@ -84,9 +87,11 @@ if __name__ == "__main__":
         inputs=[gr.Textbox(label="Inputs", lines=10),
                 gr.Number(2, label="k"),
                 gr.Number(512, label="Max tokens"),
+                gr.Number(0.8, label="temperature", step=0.2),
+                gr.Number(-1, label="seed", step=1)
                 ],
         outputs=[gr.Textbox(label="Outputs", lines=30)],
     )
 
-    demo.launch(server_name="127.0.0.1", server_port=49283)
+    demo.launch(server_name=conf.listen_bind, server_port=conf.listen_port)
     # auth=("admin", "pass1234")

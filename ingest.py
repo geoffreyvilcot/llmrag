@@ -50,18 +50,39 @@ def process_file_md(conf : Config, model : Llama, filename : str, max_tokens=256
             chunks.append(current_chunk)
     return chunks
 
+def process_file_text(conf : Config, model : Llama, filename : str, max_tokens=256) -> [str] :
+    chunks = []
+
+    with open(filename, "r", encoding='utf-8') as f:
+
+        line = f.readline()
+        current_chunk = f""
+        while line :
+            tokens = model.tokenize(current_chunk.encode('utf8'))
+            if len(tokens)>max_tokens:
+                if len(current_chunk) > 100:
+                    chunks.append(current_chunk)
+                    current_chunk = f""
+            current_chunk += line
+            line = f.readline()
+        if len(current_chunk) > 10 :
+            chunks.append(current_chunk)
+    return chunks
 def process_file_basic(conf : Config, filename : str) -> [str] :
     chunks = []
     with open(filename, "r", encoding='utf-8') as f:
         lines = f.read()
-    chunk_size = 1024
+    chunk_size = 1000
     chunks = [lines[i:i + chunk_size] for i in range(0, len(lines), chunk_size)]
     return chunks
 
 def process_file(conf : Config, model : Llama, filename : str)  :
 
     if conf.chunks_mode == 'md' :
-        chunks = process_file_md(conf, model, filename, max_tokens=512)
+        chunks = process_file_md(conf, model, filename, max_tokens=conf.ingest_max_tokens)
+    elif conf.chunks_mode == 'text' :
+        chunks = process_file_text(conf, model, filename, max_tokens=conf.ingest_max_tokens)
+
     else :
         chunks = process_file_basic(conf, filename)
     emb_chunks = []
