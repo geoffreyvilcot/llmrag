@@ -56,4 +56,9 @@ class Config(object):
         else :
             self.external_llama_cpp_url = None
 
+        if "external_llama_cpp_api_key" in jconf and len(jconf['external_llama_cpp_api_key']) > 0:
+            self.external_llama_cpp_api_key = jconf['external_llama_cpp_api_key']
+        else :
+            self.external_llama_cpp_api_key = None
+
 

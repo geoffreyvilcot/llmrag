@@ -5,6 +5,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client.http.models import PointStruct
 
+import os
+
 class Vector_DB :
     def __init__(self, conf : Config, dim):
         pass

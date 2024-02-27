@@ -6,8 +6,11 @@ import faiss
 import pickle
 import getopt
 import sys
+import requests
+import json
 from tqdm import tqdm
 from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
+from llm_wrapper import Llm_wrapper
 
 def process_file_md_alt(conf : Config, filename : str) -> [str] :
     chunks = []
@@ -31,7 +34,7 @@ def process_file_md_alt(conf : Config, filename : str) -> [str] :
             chunks.append(current_chunk)
     return chunks
 
-def process_file_md(conf : Config, model : Llama, filename : str, max_tokens=256) -> [str] :
+def process_file_md(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
     chunks = []
     pre_text = os.path.basename(filename).split('.')[0]
     with open(filename, "r", encoding='utf-8') as f:
@@ -50,7 +53,7 @@ def process_file_md(conf : Config, model : Llama, filename : str, max_tokens=256
             chunks.append(current_chunk)
     return chunks
 
-def process_file_text(conf : Config, model : Llama, filename : str, max_tokens=256) -> [str] :
+def process_file_text(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
     chunks = []
 
     with open(filename, "r", encoding='utf-8') as f:
@@ -58,11 +61,12 @@ def process_file_text(conf : Config, model : Llama, filename : str, max_tokens=2
         line = f.readline()
         current_chunk = f""
         while line :
-            tokens = model.tokenize(current_chunk.encode('utf8'))
-            if len(tokens)>max_tokens:
-                if len(current_chunk) > 100:
-                    chunks.append(current_chunk)
-                    current_chunk = f""
+            if len(current_chunk) > 1 :
+                tokens = model.tokenize(current_chunk)
+                if len(tokens)>max_tokens:
+                    if len(current_chunk) > 100:
+                        chunks.append(current_chunk)
+                        current_chunk = f""
             current_chunk += line
             line = f.readline()
         if len(current_chunk) > 10 :
@@ -76,7 +80,7 @@ def process_file_basic(conf : Config, filename : str) -> [str] :
     chunks = [lines[i:i + chunk_size] for i in range(0, len(lines), chunk_size)]
     return chunks
 
-def process_file(conf : Config, model : Llama, filename : str)  :
+def process_file(conf : Config, model : Llm_wrapper, filename : str)  :
 
     if conf.chunks_mode == 'md' :
         chunks = process_file_md(conf, model, filename, max_tokens=conf.ingest_max_tokens)
@@ -86,12 +90,7 @@ def process_file(conf : Config, model : Llama, filename : str)  :
     else :
         chunks = process_file_basic(conf, filename)
     emb_chunks = []
-    # for chunk in chunks :
-    #     print(chunk)
-    #     res_emb = llm.embed(chunk)
-    #     print(len(res_emb))
-    #     emb_chunks.append(res_emb)
-    # text_embeddings = np.array(emb_chunks)
+
     return  chunks
 
 if __name__ == '__main__':
@@ -107,16 +106,9 @@ if __name__ == '__main__':
 
     conf = Config(conf_file=conf_file_name)
 
-    llm = Llama(
-        model_path=conf.model_path,
-        embedding=True,
-        n_gpu_layers=conf.n_gpu_layers,
-        verbose=False,
-        # n_threads=20,
-        # seed=1337, # Uncomment to set a specific seed
+    llm = Llm_wrapper(conf)
 
-        n_ctx=conf.n_ctx,  # Uncomment to increase the context window
-    )
+
     input_files = [os.path.join(conf.ingest_files_dir, f) for f in os.listdir(conf.ingest_files_dir)]
 
     stack = []
@@ -133,6 +125,8 @@ if __name__ == '__main__':
 
     # print(stack_chunks)
     print(len(stack_chunks))
+
+    # stack_chunks= stack_chunks[:5]
     
     idx = 0
     array_emb = []
@@ -140,8 +134,8 @@ if __name__ == '__main__':
     print("Compute Embeddings")
     for i in tqdm(range(len(stack_chunks))) :
         chunk = stack_chunks[i]
-        # print(f"{idx}/{len(stack_chunks)}")
         array_emb.append(llm.embed(chunk))
+
         idx +=1
     text_embeddings = np.array(array_emb)
 
