@@ -17,6 +17,7 @@ class Llm_wrapper(object) :
                 # seed=1337, # Uncomment to set a specific seed
                 n_ctx=conf.n_ctx,  # Uncomment to increase the context window
                 verbose=True,
+                # n_threads=24,
             )
             self.llm.verbose = False
     def embed(self, inputs):

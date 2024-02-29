@@ -17,5 +17,7 @@
   "qdrant_local" : true,
   "qdrant_host" : "localhost",
   "qdrant_port" : "6333",
-  "qdrant_collection" : "demo"
+  "qdrant_collection" : "demo",
+
+  "ingest_limit_files" : 5
 }

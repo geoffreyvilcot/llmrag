@@ -11,6 +11,13 @@ class Config(object):
         self.n_ctx = int(jconf['n_ctx'])
         self.n_gpu_layers = int(jconf['n_gpu_layers'])
 
+        self.ingest_start_file_index = 0
+        if "ingest_start_file_index" in jconf :
+            self.ingest_start_file_index = int(jconf['ingest_start_file_index'])
+        self.ingest_limit_files = -1
+        if "ingest_limit_files" in jconf :
+            self.ingest_limit_files = int(jconf['ingest_limit_files'])
+
         self.prompt_template = jconf['prompt_template']
 
         self.use_qdrant = False

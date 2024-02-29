@@ -40,7 +40,7 @@ def query(Inputs, k_vector, max_tokens, temperature, seed):
     end_t = time.time()
     # self.text_ctrl.AppendText("\n\n" + output['choices'][0]['text'])
 
-
+    print(response_text)
 
     return response_text
 
