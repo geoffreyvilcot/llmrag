@@ -17,7 +17,7 @@ class Llm_wrapper(object) :
                 # seed=1337, # Uncomment to set a specific seed
                 n_ctx=conf.n_ctx,  # Uncomment to increase the context window
                 verbose=True,
-                # n_threads=24,
+                # n_threads=4,
             )
             self.llm.verbose = False
     def embed(self, inputs):
@@ -45,12 +45,16 @@ class Llm_wrapper(object) :
                 echo=False,  # Echo the prompt back in the output
                 temperature=temperature,
                 seed=seed,
+                stream=True
             )  # Generate a completion, can also call create_completion
             # print(output)
 
-            # prompt_tokens_per_sec = int(output['usage']['prompt_tokens']) / (end_t - start_t)
-            # completion_tokens_per_sec = int(output['usage']['completion_tokens']) / (end_t - start_t)
-            response_text = output['choices'][0]['text']
+            for e in output:
+                # print(e['choices'][0]['text'])
+                yield e['choices'][0]['text']
+
+            # return output
+            # response_text = output['choices'][0]['text']
         else:
             # User external llama cpp server
             api_url = f"{self.conf.external_llama_cpp_url}/completion"
@@ -61,8 +65,9 @@ class Llm_wrapper(object) :
                 headers["Authorization"] = f"Bearer {self.conf.external_llama_cpp_api_key}"
             response = requests.post(api_url, data=json.dumps(in_data), headers=headers)
             response_text = json.loads(response.text)['content']
-            print(json.loads(response.text))
-        return response_text
+            # print(json.loads(response.text))
+            yield response_text
+        # return response_text
 
     def tokenize(self, inputs):
         if self.conf.external_llama_cpp_url is None:

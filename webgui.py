@@ -35,7 +35,11 @@ def query(Inputs, k_vector, max_tokens, temperature, seed):
 
     start_t = time.time()
 
-    response_text = llm.query(prompt, max_tokens, temperature, seed)
+    iterator_result = llm.query(prompt, max_tokens, temperature, seed)
+    response_text = ""
+    for e in iterator_result :
+        response_text +=e
+        yield response_text
 
     end_t = time.time()
     # self.text_ctrl.AppendText("\n\n" + output['choices'][0]['text'])
@@ -78,6 +82,7 @@ if __name__ == "__main__":
                 gr.Number(-1, label="seed", step=1)
                 ],
         outputs=[gr.Textbox(label="Outputs", lines=30)],
+
     )
 
     demo.launch(server_name=conf.listen_bind, server_port=conf.listen_port)
