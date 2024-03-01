@@ -110,10 +110,11 @@ if __name__ == '__main__':
 
 
     input_files = [os.path.join(conf.ingest_files_dir, f) for f in os.listdir(conf.ingest_files_dir)]
+    input_files = sorted(input_files)
     print(f"Total number of files {len(input_files)}")
 
-    # if conf.ingest_limit_files is not None :
-    input_files = input_files[conf.ingest_start_file_index:conf.ingest_start_file_index+conf.ingest_limit_files]
+    if conf.ingest_limit_files is not None and conf.ingest_limit_files > 0 :
+        input_files = input_files[conf.ingest_start_file_index:conf.ingest_start_file_index+conf.ingest_limit_files]
 
     stack = []
     stack_chunks = []

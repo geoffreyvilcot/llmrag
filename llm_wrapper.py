@@ -17,7 +17,7 @@ class Llm_wrapper(object) :
                 # seed=1337, # Uncomment to set a specific seed
                 n_ctx=conf.n_ctx,  # Uncomment to increase the context window
                 verbose=True,
-                # n_threads=4,
+                n_threads_batch=conf.n_threads,
             )
             self.llm.verbose = False
     def embed(self, inputs):
@@ -37,6 +37,7 @@ class Llm_wrapper(object) :
     def query(self, inputs, max_tokens, temperature, seed):
         if self.conf.external_llama_cpp_url is None:
             # Use internal Llama CPP
+            self.llm.reset()
             output = self.llm(
                 inputs,  # Prompt
                 max_tokens=max_tokens,

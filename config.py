@@ -11,6 +11,10 @@ class Config(object):
         self.n_ctx = int(jconf['n_ctx'])
         self.n_gpu_layers = int(jconf['n_gpu_layers'])
 
+        self.n_threads = None
+        if "n_threads" in jconf :
+            self.n_threads = int(jconf['n_threads'])
+
         self.ingest_start_file_index = 0
         if "ingest_start_file_index" in jconf :
             self.ingest_start_file_index = int(jconf['ingest_start_file_index'])
