@@ -37,10 +37,13 @@ def query(Inputs, k_vector, max_tokens, temperature, seed):
 
     iterator_result = llm.query(prompt, max_tokens, temperature, seed)
     response_text = ""
+    idx = 0
+    start_t = time.time()
     for e in iterator_result :
         response_text +=e
         end_t = time.time()
-        yield response_text, f"Elapsed time {end_t -start_t:0.2f} s"
+        idx +=1
+        yield response_text, f"Elapsed time {end_t -start_t:0.2f}s / {idx} tokens / {idx/(end_t -start_t):0.2f} tokens / sec"
 
     end_t = time.time()
     # self.text_ctrl.AppendText("\n\n" + output['choices'][0]['text'])
@@ -76,6 +79,7 @@ if __name__ == "__main__":
     demo = gr.Interface(
         allow_flagging='never',
         fn=query,
+        analytics_enabled=False,
         inputs=[gr.Textbox(label="Inputs", lines=10),
                 gr.Number(2, label="k"),
                 gr.Number(512, label="Max tokens"),
