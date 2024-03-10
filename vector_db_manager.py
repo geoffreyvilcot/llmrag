@@ -1,4 +1,3 @@
-import faiss
 import pickle
 from config import Config
 from qdrant_client import QdrantClient
@@ -25,38 +24,6 @@ class Vector_DB :
     def load(self):
         pass
 
-class Vector_DB_Faiss(Vector_DB) :
-    def __init__(self, conf : Config, dim=None):
-        super().__init__(conf, dim)
-        self.conf = conf
-        if dim is None :
-            self.index = None
-        else :
-            self.index = faiss.IndexFlatL2(dim)
-        self.payloads = []
-        self.k_vector = 3
-    def add(self, vector, payload):
-        self.index.add(vector)
-        for p in payload :
-            self.payloads.append(p)
-        pass
-
-    def search(self, vector, k=3):
-        D, I = self.index.search(vector, k=k)  # distance, index
-
-        retrieved_payloads = [self.payloads[i] for i in I.tolist()[0]]
-        return retrieved_payloads
-
-    def save(self):
-        with open(self.conf.vector_db_file, 'wb') as file:
-            pickle.dump((self.index, self.payloads), file)
-    def load(self):
-        with open(self.conf.vector_db_file, 'rb') as file:
-            self.index, self.payloads = pickle.load(file)
-
-
-
-
 class Vector_DB_Qdrant(Vector_DB) :
     def __init__(self, conf : Config, dim=None):
         super().__init__(conf, dim)
@@ -69,9 +36,10 @@ class Vector_DB_Qdrant(Vector_DB) :
         self.dim = dim
 
     def reset(self):
-        self.client.recreate_collection(
-            collection_name=self.conf.qdrant_collection,
-            vectors_config=VectorParams(size= self.dim, distance=Distance.DOT),
+        if not self.client.collection_exists(collection_name=self.conf.qdrant_collection) :
+            self.client.recreate_collection(
+                collection_name=self.conf.qdrant_collection,
+                vectors_config=VectorParams(size= self.dim, distance=Distance.DOT),
         )
 
     def add(self, vector, payload):

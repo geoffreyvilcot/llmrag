@@ -24,6 +24,17 @@ For Cuda:
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
 ```
 
+For reinstal and rebuild
+```
+pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+```
+
+Cuda for windows (cmd.com)
+```
+set CMAKE_ARGS=-DLLAMA_CUBLAS=on
+pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+```
+
 Install other requirements:
 ```
 pip install -r requirements.txt
@@ -53,11 +64,11 @@ Since the solution is based on llama.cpp (https://github.com/ggerganov/llama.cpp
 | n_ctx | Context size for _llama.cpp_                                                                                                             | 2048                    |
 | n_gpu_layers | Number of layers to be offloaded on the GPU, -1 for all                                                                                  | -1                      |
 | external_llama_cpp_url | (Optional) Url for _llama.cpp_. If _None_ or empty. Use local _llama.cpp_                                                                | "http://127.0.0.1:8080" |
-| external_llama_cpp_api_key | (Optional) Api Key for _llama.cpp_                                                                                                       | "secretkey"             |
+| external_llama_cpp_api_key | (Optional) Api Key for _llama.cpp_                                                                                                       | "secretkey"          |   |
 | chunks_mode | Mode to use for document splitting.                                                                                                      | "text", "md" or "basic" |
 |ingest_max_tokens | Max tokens count for document splitting, Only for "md" of "text". NB: the real count can be slightly higher to avoid cut line in middle. | 512                     |
  | prompt_template | Path to the file with the tempalte to use in Rag mode inference                                                                          | "prompt_default.txt"    |
-|listen_bind | Binding host for _webgui_. Set "0.0.0.0" to open Gradio Gui on the network                                                               | "127.0.0.1" -           
+|listen_bind | Binding host for _webgui_. Set "0.0.0.0" to open Gradio Gui on the network                                                               | "127.0.0.1"            |
 | listen_port | Tcp port to used for Gradio.                                                                                                             | 49283                   |
 
 

@@ -6,7 +6,6 @@ import numpy as np
 from config import Config
 import json
 import time
-import faiss
 import requests
 
 from threading import Thread
@@ -14,7 +13,7 @@ from threading import Thread
 import getopt
 from prompt import build_prompt
 import sys
-from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
+from vector_db_manager import Vector_DB, Vector_DB_Qdrant
 from llm_wrapper import Llm_wrapper
 
 def query(Inputs, k_vector, max_tokens, temperature, seed):
@@ -69,10 +68,7 @@ if __name__ == "__main__":
     llm = Llm_wrapper(conf)
 
     if conf.use_rag :
-        if conf.use_qdrant :
-            db = Vector_DB_Qdrant(conf, None)
-        else :
-            db = Vector_DB_Faiss(conf, None)
+        db = Vector_DB_Qdrant(conf, None)
         db.load()
 
 

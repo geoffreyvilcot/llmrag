@@ -2,14 +2,13 @@ from config import Config
 import os
 from llama_cpp import Llama
 import numpy as np
-import faiss
 import pickle
 import getopt
 import sys
 import requests
 import json
 from tqdm import tqdm
-from vector_db_manager import Vector_DB, Vector_DB_Faiss, Vector_DB_Qdrant
+from vector_db_manager import Vector_DB, Vector_DB_Qdrant
 from llm_wrapper import Llm_wrapper
 
 def process_file_md_alt(conf : Config, filename : str) -> [str] :
@@ -42,7 +41,7 @@ def process_file_md(conf : Config, model : Llm_wrapper, filename : str, max_toke
         line = f.readline()
         current_chunk = f"{pre_text} / "
         while line :
-            tokens = model.tokenize(current_chunk.encode('utf8'))
+            tokens = model.tokenize(current_chunk)
             if line.startswith('#') or len(tokens)>max_tokens:
                 if len(current_chunk) > 100:
                     chunks.append(current_chunk)
@@ -50,6 +49,34 @@ def process_file_md(conf : Config, model : Llm_wrapper, filename : str, max_toke
             current_chunk += line
             line = f.readline()
         if len(current_chunk) > 10 :
+            chunks.append(current_chunk)
+    return chunks
+def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
+    chunks = []
+    pre_text = os.path.basename(filename).split('.')[0]
+    with open(filename, "r", encoding='utf-8') as f:
+
+        line = f.readline()
+        while not line.startswith('# ') :
+            line = f.readline()
+        pre_text = line[:-1]
+        current_chunk = f"{pre_text} / "
+        while line :
+            # tokens = model.tokenize(current_chunk)
+            # if line.startswith('# ') : #or len(tokens)>max_tokens:
+            #     if len(current_chunk) > 100:
+            #         chunks.append(current_chunk)
+            #         current_chunk = f"{pre_text} / "
+
+
+            # if len(line.strip()) < 2 and len(current_chunk) > 20:
+            #     if len(current_chunk) > len(pre_text) +5 :
+            #         chunks.append(current_chunk)
+            #     current_chunk = f"{pre_text} / "
+            if not line.startswith("# ") :
+                current_chunk += line
+            line = f.readline()
+        if len(current_chunk) >  len(pre_text) +5 :
             chunks.append(current_chunk)
     return chunks
 
@@ -84,6 +111,8 @@ def process_file(conf : Config, model : Llm_wrapper, filename : str)  :
 
     if conf.chunks_mode == 'md' :
         chunks = process_file_md(conf, model, filename, max_tokens=conf.ingest_max_tokens)
+    elif conf.chunks_mode == 'md_whole':
+        chunks = process_file_md_whole(conf, model, filename, max_tokens=conf.ingest_max_tokens)
     elif conf.chunks_mode == 'text' :
         chunks = process_file_text(conf, model, filename, max_tokens=conf.ingest_max_tokens)
 
@@ -106,7 +135,7 @@ if __name__ == '__main__':
 
     conf = Config(conf_file=conf_file_name)
 
-    llm = Llm_wrapper(conf)
+    llm = Llm_wrapper(conf, only_embd=True)
 
 
     input_files = [os.path.join(conf.ingest_files_dir, f) for f in os.listdir(conf.ingest_files_dir)]
@@ -137,23 +166,30 @@ if __name__ == '__main__':
     array_emb = []
     # for chunk in stack_chunks :
     print("Compute Embeddings")
+    db = None
     for i in tqdm(range(len(stack_chunks))) :
         chunk = stack_chunks[i]
         array_emb.append(llm.embed(chunk))
 
+        # if len(array_emb) > 300 :
+        #     text_embeddings = np.array(array_emb)
+        #     if db == None :
+        #         d = text_embeddings.shape[1]
+        #         print(f"dim : {d}")
+        #         db = Vector_DB_Qdrant(conf, d)
+        #         db.reset()
+        #     db.add(text_embeddings, stack_chunks)
+        #     array_emb = []
+
         idx +=1
     text_embeddings = np.array(array_emb)
 
-    d = text_embeddings.shape[1]
-    print(f"dim : {d}")
-
-
-    if conf.use_qdrant :
+    if db == None:
+        d = text_embeddings.shape[1]
+        print(f"dim : {d}")
         db = Vector_DB_Qdrant(conf, d)
-    else :
-        db = Vector_DB_Faiss(conf, d)
+        db.reset()
 
-    db.reset()
     db.add(text_embeddings, stack_chunks)
     db.save()
 

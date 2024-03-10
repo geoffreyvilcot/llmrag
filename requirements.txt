@@ -1,5 +1,4 @@
-faiss-cpu
-llama_cpp_python
+llama_cpp_python==0.2.55
 tqdm
 flask
 gradio

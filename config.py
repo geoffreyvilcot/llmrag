@@ -6,6 +6,7 @@ class Config(object):
             jconf = json.load(f)
 
         self.model_path = jconf['model_path']
+        self.model_embd_path = jconf['model_embd_path']
         self.ingest_files_dir = jconf['ingest_files_dir']
         self.vector_db_file = jconf['vector_db_file']
         self.n_ctx = int(jconf['n_ctx'])

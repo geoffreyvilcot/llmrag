@@ -5,13 +5,14 @@ import json
 import numpy as np
 
 class Llm_wrapper(object) :
-    def __init__(self, conf : Config):
+    def __init__(self, conf : Config, only_embd = False):
         super().__init__()
         self.conf = conf
         self.llm = None
+        self.llm_embd = None
         if conf.external_llama_cpp_url is None:
-            self.llm = Llama(
-                model_path=conf.model_path,
+            self.llm_embd = Llama(
+                model_path=conf.model_embd_path,
                 embedding=True,
                 n_gpu_layers=conf.n_gpu_layers,  # Uncomment to use GPU acceleration
                 # seed=1337, # Uncomment to set a specific seed
@@ -19,11 +20,24 @@ class Llm_wrapper(object) :
                 verbose=True,
                 n_threads_batch=conf.n_threads,
             )
-            self.llm.verbose = False
+            self.llm_embd.verbose = False
+
+            if not only_embd :
+                self.llm = Llama(
+                    model_path=conf.model_path,
+                    embedding=False,
+                    n_gpu_layers=conf.n_gpu_layers,  # Uncomment to use GPU acceleration
+                    # seed=1337, # Uncomment to set a specific seed
+                    n_ctx=conf.n_ctx,  # Uncomment to increase the context window
+                    verbose=True,
+                    n_threads_batch=conf.n_threads,
+                )
+                self.llm.verbose = False
+
     def embed(self, inputs):
         if self.conf.external_llama_cpp_url is None:
         # Use internal Llama CPP
-            return np.array(self.llm.embed(inputs))
+            return np.array(self.llm_embd.embed(inputs))
         else :
             api_url = f"{self.conf.external_llama_cpp_url}/embedding"
             in_data = {"content": inputs}
@@ -72,7 +86,7 @@ class Llm_wrapper(object) :
 
     def tokenize(self, inputs):
         if self.conf.external_llama_cpp_url is None:
-            return np.array(self.llm.tokenize(inputs.encode('utf8')))
+            return np.array(self.llm_embd.tokenize(inputs.encode('utf8')))
         else :
             # User external llama cpp server
             api_url = f"{self.conf.external_llama_cpp_url}/tokenize"
