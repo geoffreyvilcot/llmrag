@@ -61,6 +61,7 @@ def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, ma
             line = f.readline()
         pre_text = line[:-1]
         current_chunk = f"{pre_text} / "
+        line = f.readline()
         while line :
             # tokens = model.tokenize(current_chunk)
             # if line.startswith('# ') : #or len(tokens)>max_tokens:
@@ -73,7 +74,16 @@ def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, ma
             #     if len(current_chunk) > len(pre_text) +5 :
             #         chunks.append(current_chunk)
             #     current_chunk = f"{pre_text} / "
-            if not line.startswith("# ") :
+
+
+            # if not line.startswith("# ") :
+            #     current_chunk += line
+
+            if line.strip() == '' :
+                if len(current_chunk) > len(pre_text) +5 :
+                    chunks.append(current_chunk)
+                current_chunk = f"{pre_text} / "
+            else :
                 current_chunk += line
             line = f.readline()
         if len(current_chunk) >  len(pre_text) +5 :

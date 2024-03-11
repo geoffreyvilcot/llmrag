@@ -42,14 +42,14 @@ def query(Inputs, k_vector, max_tokens, temperature, seed):
         response_text +=e
         end_t = time.time()
         idx +=1
-        yield response_text, f"Elapsed time {end_t -start_t:0.2f}s / {idx} tokens / {idx/(end_t -start_t):0.2f} tokens / sec"
+        yield response_text, f"Elapsed time {end_t -start_t:0.2f}s / {idx} tokens / {idx/(end_t -start_t):0.2f} tokens / sec", prompt
 
     end_t = time.time()
     # self.text_ctrl.AppendText("\n\n" + output['choices'][0]['text'])
 
     print(response_text)
 
-    return response_text
+    return response_text, f"Elapsed time {end_t -start_t:0.2f}s / {idx} tokens / {idx/(end_t -start_t):0.2f} tokens / sec", prompt
 
 
 if __name__ == "__main__":
@@ -82,7 +82,7 @@ if __name__ == "__main__":
                 gr.Number(0.8, label="temperature", step=0.2),
                 gr.Number(-1, label="seed", step=1)
                 ],
-        outputs=[gr.Textbox(label="Outputs", lines=30), gr.Label(label="Stats")],
+        outputs=[gr.Textbox(label="Outputs", lines=30), gr.Label(label="Stats"), gr.Text(label="built prompt")],
 
     )
 

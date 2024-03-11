@@ -39,7 +39,7 @@ class Vector_DB_Qdrant(Vector_DB) :
         if not self.client.collection_exists(collection_name=self.conf.qdrant_collection) :
             self.client.recreate_collection(
                 collection_name=self.conf.qdrant_collection,
-                vectors_config=VectorParams(size= self.dim, distance=Distance.DOT),
+                vectors_config=VectorParams(size= self.dim, distance=Distance.COSINE),
         )
 
     def add(self, vector, payload):
