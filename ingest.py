@@ -1,6 +1,8 @@
+from embedding_model import My_embedding
+
 from config import Config
 import os
-from llama_cpp import Llama
+# from llama_cpp import Llama
 import numpy as np
 import pickle
 import getopt
@@ -55,13 +57,19 @@ def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, ma
     chunks = []
     pre_text = os.path.basename(filename).split('.')[0]
     with open(filename, "r", encoding='utf-8') as f:
-
+        section_pre_text = ""
+        carac = True
         line = f.readline()
         while not line.startswith('# ') :
             line = f.readline()
-        pre_text = line[:-1]
+        pre_text = line[:-1].lower()
         current_chunk = f"{pre_text} / "
+
         line = f.readline()
+        while line.replace(' ', '') == '\n' or "![]" in line :
+            line = f.readline()
+
+        # line = f.readline()
         while line :
             # tokens = model.tokenize(current_chunk)
             # if line.startswith('# ') : #or len(tokens)>max_tokens:
@@ -79,15 +87,38 @@ def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, ma
             # if not line.startswith("# ") :
             #     current_chunk += line
 
-            if line.strip() == '' :
+            # if line.replace(' ', '') == '\n' :
+            #     if len(current_chunk) > len(pre_text) +5 :
+            #         chunks.append(current_chunk)
+            #     current_chunk = f"{pre_text} / "
+            # elif not line.startswith("#") :
+            #     current_chunk += line.replace('\n', ' ').lower()
+            # line = f.readline()
+
+            if carac and  line.replace(' ', '') == '\n' :
                 if len(current_chunk) > len(pre_text) +5 :
                     chunks.append(current_chunk)
                 current_chunk = f"{pre_text} / "
+                carac = False
             else :
-                current_chunk += line
+                if line.startswith("#") :
+                    section_pre_text = line[:-1].lower() + " / "
+                    if len(current_chunk) > len(pre_text) +5 :
+                        chunks.append(current_chunk)
+                    current_chunk = f"{pre_text} / {section_pre_text}"
+                # elif line.replace(' ', '') == '\n' and section_pre_text == "" :
+                #     if len(current_chunk) > len(pre_text) +5 :
+                #         chunks.append(current_chunk)
+                #     current_chunk = f"{pre_text} / {section_pre_text}"
+                elif not line.startswith("#") :
+                    current_chunk += line.replace('\n', ' ').lower()
             line = f.readline()
+
+
         if len(current_chunk) >  len(pre_text) +5 :
             chunks.append(current_chunk)
+        # if len(chunks) > 2 :
+        #     print(chunks)
     return chunks
 
 def process_file_text(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
@@ -155,6 +186,8 @@ if __name__ == '__main__':
     if conf.ingest_limit_files is not None and conf.ingest_limit_files > 0 :
         input_files = input_files[conf.ingest_start_file_index:conf.ingest_start_file_index+conf.ingest_limit_files]
 
+    emb = My_embedding("path_finder_emb.pk")
+
     stack = []
     stack_chunks = []
     print("Read file")
@@ -164,11 +197,17 @@ if __name__ == '__main__':
         chunks = process_file(conf, llm, filename)
         # stack.append(text_embeddings)
         stack_chunks.extend(chunks)
+        emb.add_train_example(chunks, label=float(i))
         # print(text_embeddings)
 
 
     # print(stack_chunks)
     print(len(stack_chunks))
+    # for s in stack_chunks :
+    #     print(s)
+
+    # emb.fit(epochs=200, batch_size=10, warmup_steps=100)
+    # emb.save("path_finder_emb.pk")
 
     # stack_chunks= stack_chunks[:5]
     
@@ -180,6 +219,7 @@ if __name__ == '__main__':
     for i in tqdm(range(len(stack_chunks))) :
         chunk = stack_chunks[i]
         array_emb.append(llm.embed(chunk))
+        # array_emb.append(emb.encode([chunk])[0])
 
         # if len(array_emb) > 300 :
         #     text_embeddings = np.array(array_emb)

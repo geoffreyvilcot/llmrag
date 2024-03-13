@@ -11,18 +11,19 @@ class Llm_wrapper(object) :
         self.llm = None
         self.llm_embd = None
         if conf.external_llama_cpp_url is None:
-            self.llm_embd = Llama(
-                model_path=conf.model_embd_path,
-                embedding=True,
-                n_gpu_layers=conf.n_gpu_layers,  # Uncomment to use GPU acceleration
-                # seed=1337, # Uncomment to set a specific seed
-                n_ctx=conf.n_ctx,  # Uncomment to increase the context window
-                verbose=True,
-                n_threads_batch=conf.n_threads,
-            )
-            self.llm_embd.verbose = False
+            if self.conf.model_embd_path != "" :
+                self.llm_embd = Llama(
+                    model_path=conf.model_embd_path,
+                    embedding=True,
+                    n_gpu_layers=conf.n_gpu_layers,  # Uncomment to use GPU acceleration
+                    # seed=1337, # Uncomment to set a specific seed
+                    n_ctx=conf.n_ctx,  # Uncomment to increase the context window
+                    verbose=True,
+                    n_threads_batch=conf.n_threads,
+                )
+                self.llm_embd.verbose = False
 
-            if not only_embd :
+            if not only_embd or self.conf.model_embd_path == "":
                 self.llm = Llama(
                     model_path=conf.model_path,
                     embedding=False,
@@ -33,13 +34,18 @@ class Llm_wrapper(object) :
                     n_threads_batch=conf.n_threads,
                 )
                 self.llm.verbose = False
+            if self.conf.model_embd_path == "" :
+                self.llm_embd = self.llm
 
     def embed(self, inputs):
         if self.conf.external_llama_cpp_url is None:
         # Use internal Llama CPP
             return np.array(self.llm_embd.embed(inputs))
         else :
-            api_url = f"{self.conf.external_llama_cpp_url}/embedding"
+            if self.conf.external_llama_emb_cpp_url is not None :
+                api_url = f"{self.conf.external_llama_emb_cpp_url}/embedding"
+            else :
+                api_url = f"{self.conf.external_llama_cpp_url}/embedding"
             in_data = {"content": inputs}
             headers = {"Content-Type": "application/json"}
             if self.conf.external_llama_cpp_api_key is not None :
@@ -73,15 +79,27 @@ class Llm_wrapper(object) :
         else:
             # User external llama cpp server
             api_url = f"{self.conf.external_llama_cpp_url}/completion"
-            in_data = {"prompt": inputs, "n_predict": max_tokens, "seed": seed, "temperature": temperature}
+            in_data = {"prompt": inputs, "n_predict": max_tokens, "seed": seed, "temperature": temperature, "stream" : True}
 
             headers = {"Content-Type": "application/json"}
             if self.conf.external_llama_cpp_api_key is not None:
                 headers["Authorization"] = f"Bearer {self.conf.external_llama_cpp_api_key}"
-            response = requests.post(api_url, data=json.dumps(in_data), headers=headers)
-            response_text = json.loads(response.text)['content']
+            response = requests.post(api_url, data=json.dumps(in_data), headers=headers, stream=True)
+
+            for line in response.iter_lines():
+
+                # filter out keep-alive new lines
+                if line:
+                    decoded_line = line.decode('utf-8').replace("data: ", "")
+                    j_str = json.loads(decoded_line)
+                    if j_str['stop'] == "true" :
+                        print("-- STOP --")
+                        return
+                    # print(json.loads(decoded_line))
+                    yield j_str['content']
+            # response_text = json.loads(response.text)['content']
             # print(json.loads(response.text))
-            yield response_text
+            # yield response_text
         # return response_text
 
     def tokenize(self, inputs):

@@ -1,4 +1,5 @@
 import gradio as gr
+from embedding_model import My_embedding
 from llama_cpp import Llama
 from config import Config
 import pickle
@@ -19,6 +20,7 @@ from llm_wrapper import Llm_wrapper
 def query(Inputs, k_vector, max_tokens, temperature, seed):
     if conf.use_rag :
         question_embeddings = np.array([llm.embed(Inputs)])
+        # question_embeddings = np.array(emb.encode([Inputs]))
 
         retrieved_chunk=db.search(question_embeddings, k_vector)
 
@@ -66,6 +68,7 @@ if __name__ == "__main__":
     conf = Config(conf_file=conf_file_name)
 
     llm = Llm_wrapper(conf)
+    # emb = My_embedding("path_finder_emb.pk")
 
     if conf.use_rag :
         db = Vector_DB_Qdrant(conf, None)

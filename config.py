@@ -6,7 +6,9 @@ class Config(object):
             jconf = json.load(f)
 
         self.model_path = jconf['model_path']
-        self.model_embd_path = jconf['model_embd_path']
+        self.model_embd_path = ""
+        if "model_embd_path" in jconf :
+            self.model_embd_path = jconf['model_embd_path']
         self.ingest_files_dir = jconf['ingest_files_dir']
         self.vector_db_file = jconf['vector_db_file']
         self.n_ctx = int(jconf['n_ctx'])
@@ -67,6 +69,11 @@ class Config(object):
             self.external_llama_cpp_url = jconf['external_llama_cpp_url']
         else :
             self.external_llama_cpp_url = None
+
+        if "external_llama_emb_cpp_url" in jconf and len(jconf['external_llama_emb_cpp_url']) > 5:
+            self.external_llama_emb_cpp_url = jconf['external_llama_emb_cpp_url']
+        else :
+            self.external_llama_emb_cpp_url = None
 
         if "external_llama_cpp_api_key" in jconf and len(jconf['external_llama_cpp_api_key']) > 0:
             self.external_llama_cpp_api_key = jconf['external_llama_cpp_api_key']
