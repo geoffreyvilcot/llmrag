@@ -36,29 +36,44 @@ def process_file_md_alt(conf : Config, filename : str) -> [str] :
     return chunks
 
 def process_file_md(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
+
     chunks = []
     pre_text = os.path.basename(filename).split('.')[0]
     with open(filename, "r", encoding='utf-8') as f:
-
+        section_pre_text=""
         line = f.readline()
+        while not line.startswith('# ') :
+            line = f.readline()
+        pre_text = line[:-1].lower()
         current_chunk = f"{pre_text} / "
+        line = f.readline()
         while line :
-            tokens = model.tokenize(current_chunk)
-            if line.startswith('#') or len(tokens)>max_tokens:
+
+            if line.startswith("#") :
                 if len(current_chunk) > 100:
                     chunks.append(current_chunk)
-                    current_chunk = f"{pre_text} / "
-            current_chunk += line
+                section_pre_text = line[:-1].lower() + " / "
+                current_chunk = f"{pre_text} / {section_pre_text} "
+            else :
+                if line.replace(' ', '') == '\n' :
+                    # tokens = model.tokenize(current_chunk)
+                    word_count = len(current_chunk.split(' '))
+                    if word_count>max_tokens:
+                        if len(current_chunk) > 100:
+                            chunks.append(current_chunk)
+                            current_chunk = f"{pre_text} / {section_pre_text} "
+                else :
+                    current_chunk += line
             line = f.readline()
-        if len(current_chunk) > 10 :
+        if len(current_chunk) >  len(pre_text) +len (section_pre_text) +20 :
             chunks.append(current_chunk)
     return chunks
+
 def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
     chunks = []
     pre_text = os.path.basename(filename).split('.')[0]
     with open(filename, "r", encoding='utf-8') as f:
         section_pre_text = ""
-        carac = True
         line = f.readline()
         while not line.startswith('# ') :
             line = f.readline()
@@ -66,60 +81,23 @@ def process_file_md_whole(conf : Config, model : Llm_wrapper, filename : str, ma
         current_chunk = f"{pre_text} / "
 
         line = f.readline()
-        while line.replace(' ', '') == '\n' or "![]" in line :
-            line = f.readline()
-
-        # line = f.readline()
         while line :
-            # tokens = model.tokenize(current_chunk)
-            # if line.startswith('# ') : #or len(tokens)>max_tokens:
-            #     if len(current_chunk) > 100:
-            #         chunks.append(current_chunk)
-            #         current_chunk = f"{pre_text} / "
-
-
-            # if len(line.strip()) < 2 and len(current_chunk) > 20:
-            #     if len(current_chunk) > len(pre_text) +5 :
-            #         chunks.append(current_chunk)
-            #     current_chunk = f"{pre_text} / "
-
-
-            # if not line.startswith("# ") :
-            #     current_chunk += line
-
-            # if line.replace(' ', '') == '\n' :
-            #     if len(current_chunk) > len(pre_text) +5 :
-            #         chunks.append(current_chunk)
-            #     current_chunk = f"{pre_text} / "
-            # elif not line.startswith("#") :
-            #     current_chunk += line.replace('\n', ' ').lower()
-            # line = f.readline()
-
-            if carac and  line.replace(' ', '') == '\n' :
+            if line.startswith("#") :
+                section_pre_text = line[:-1].lower() + " / "
                 if len(current_chunk) > len(pre_text) +5 :
                     chunks.append(current_chunk)
-                current_chunk = f"{pre_text} / "
-                carac = False
-            else :
-                if line.startswith("#") :
-                    section_pre_text = line[:-1].lower() + " / "
-                    if len(current_chunk) > len(pre_text) +5 :
-                        chunks.append(current_chunk)
-                    current_chunk = f"{pre_text} / {section_pre_text}"
-                # elif line.replace(' ', '') == '\n' and section_pre_text == "" :
-                #     if len(current_chunk) > len(pre_text) +5 :
-                #         chunks.append(current_chunk)
-                #     current_chunk = f"{pre_text} / {section_pre_text}"
-                elif not line.startswith("#") :
-                    current_chunk += line.replace('\n', ' ').lower()
+                current_chunk = f"{pre_text} / {section_pre_text}"
+            elif not line.startswith("#") :
+                current_chunk += line.replace('\n', ' ').lower()
             line = f.readline()
 
 
-        if len(current_chunk) >  len(pre_text) +5 :
+        if len(current_chunk) >  len(pre_text)  +len (section_pre_text) +20 :
             chunks.append(current_chunk)
         # if len(chunks) > 2 :
         #     print(chunks)
     return chunks
+
 
 def process_file_text(conf : Config, model : Llm_wrapper, filename : str, max_tokens=256) -> [str] :
     chunks = []
@@ -239,6 +217,9 @@ if __name__ == '__main__':
         print(f"dim : {d}")
         db = Vector_DB_Qdrant(conf, d)
         db.reset()
+
+    with open('embeded.pkl', 'wb') as file:
+        pickle.dump((text_embeddings, stack_chunks), file)
 
     db.add(text_embeddings, stack_chunks)
     db.save()

@@ -118,3 +118,15 @@ Usage example:
 ```
 curl -x POST -H 'Content-Type: application/json' -d '{"msg": "Your Query", "max_tokens" : 256}' http://127.0.0.1:16080
 ```
+
+## Qdrant tips
+
+List all collections
+```
+curl http://<host>:6333/collections
+```
+
+Delete a collections
+```
+curl -X "DELETE" http://<host>:6333/collections/<collection_name>
+```

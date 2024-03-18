@@ -107,7 +107,7 @@ class Llm_wrapper(object) :
             return np.array(self.llm_embd.tokenize(inputs.encode('utf8')))
         else :
             # User external llama cpp server
-            api_url = f"{self.conf.external_llama_cpp_url}/tokenize"
+            api_url = f"{self.conf.external_llama_emb_cpp_url}/tokenize"
             in_data = {"content": inputs}
 
             headers = {"Content-Type": "application/json"}
